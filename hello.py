@@ -1,12 +1,12 @@
 import os
 from threading import Thread
+from wtforms import StringField, SubmitField
+from wtforms.validators import Required
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from datetime import datetime
 from flask_moment import Moment
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import Required
 from flask import session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager, Shell
@@ -73,7 +73,8 @@ def internal_server_error(e):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = NameForm()
-    session['name'] = session['name'] if form.name.data is None else form.name.data
+    login_name = session.get('name') if session.get('name') is not None else 'Stranger'
+    session['name'] = login_name if form.name.data is None else form.name.data
     # first time, will return false, because client will send a GET request
     # instead of a POST request
     if form.validate_on_submit():
