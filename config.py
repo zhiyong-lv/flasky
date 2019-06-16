@@ -49,9 +49,26 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
+    DEBUG = True
+    MAIL_SERVER = 'smtp.live.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
         'sqlite:///' + os.path.join(BASE_DIR, 'data-test.sqlite')
     ENV='TEST'
+
+    @staticmethod
+    def init_app(app):
+        Config.init_app(app)
+        app.config['SQLALCHEMY_DATABASE_URI'] = TestingConfig.SQLALCHEMY_DATABASE_URI
+        app.config['MAIL_SERVER'] = TestingConfig.MAIL_SERVER
+        app.config['MAIL_PORT'] = TestingConfig.MAIL_PORT
+        app.config['MAIL_USE_TLS'] = TestingConfig.MAIL_USE_TLS
+        app.config['MAIL_USERNAME'] = TestingConfig.MAIL_USERNAME
+        app.config['MAIL_PASSWORD'] = TestingConfig.MAIL_PASSWORD
+        app.config['TESTING'] = TestingConfig.TESTING
 
 
 class ProductionConfig(Config):

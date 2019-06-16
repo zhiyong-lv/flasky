@@ -28,6 +28,6 @@ def index():
             session['known'] = True
         session['name'] = form.name.data
         form.name.data = None
-        return redirect(url_for('index'))
+        return redirect(url_for('main.index'))
     return render_template('index.html', current_time=datetime.utcnow(), form=form,
                            known=session.get('known', False), name=session['name'])
