@@ -11,8 +11,6 @@ def make_shell_context():
     return dict(app=app, db=db, User=User, Role=Role)
 
 
-
-
 if __name__ == '__main__':
     app = Flask(__name__)
     app = create_app(config.get(os.getenv('FLASK_CONFIG') or 'default'))

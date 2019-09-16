@@ -33,7 +33,7 @@ class DevelopmentConfig(Config):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(BASE_DIR, 'data-dev.sqlite')
-    ENV='DEV'
+    ENV = 'DEV'
 
     @staticmethod
     def init_app(app):
@@ -46,7 +46,6 @@ class DevelopmentConfig(Config):
         app.config['MAIL_PASSWORD'] = DevelopmentConfig.MAIL_PASSWORD
 
 
-
 class TestingConfig(Config):
     TESTING = True
     DEBUG = True
@@ -57,7 +56,7 @@ class TestingConfig(Config):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
         'sqlite:///' + os.path.join(BASE_DIR, 'data-test.sqlite')
-    ENV='TEST'
+    ENV = 'TEST'
 
     @staticmethod
     def init_app(app):
@@ -74,7 +73,7 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(BASE_DIR, 'data.sqllite')
-    ENV='PRD'
+    ENV = 'PRD'
 
 
 config = {
