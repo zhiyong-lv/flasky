@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import current_app, render_template, session, redirect, url_for
+from flask_login import login_required
 from . import main
 from .forms import NameForm
 from .. import db
@@ -8,6 +9,7 @@ from ..email import send_email
 
 
 @main.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
     form = NameForm()
     login_name = session.get('name') if session.get('name') is not None else 'Stranger'
