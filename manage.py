@@ -22,7 +22,16 @@ if __name__ == '__main__':
     def test():
         """Run the unit tests"""
         import unittest
+        import coverage
+        cov = coverage.Coverage(source=['./app', 'manaage.py'])
+        cov.start()
+        app.logger.info('current env is {}.'.format(app.config['ENV']))
         tests = unittest.TestLoader().discover('tests')
         unittest.TextTestRunner(verbosity=2).run(tests)
+        app.logger.info('current env is {}.'.format(app.config['ENV']))
+        cov.stop()
+        cov.save()
+
+        cov.html_report()
 
     manager.run()

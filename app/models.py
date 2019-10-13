@@ -1,7 +1,21 @@
 from . import db
 from . import login_manager
+from flask import current_app as app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+
+
+TOKEN_KEY_USER_NAME = 'username'
+TOKEN_KEY_CURRENT_EMAIL = 'cur_email'
+TOKEN_KEY_CALL_BACK = 'callback'
+TOKEN_KEY_NEW_EMAIL = 'new_email'
+TOKEN_KEYS = [
+    TOKEN_KEY_USER_NAME,
+    TOKEN_KEY_CURRENT_EMAIL,
+    TOKEN_KEY_CALL_BACK,
+    TOKEN_KEY_NEW_EMAIL
+]
 
 
 class Role(db.Model):
@@ -15,12 +29,14 @@ class Role(db.Model):
 
 
 class User(UserMixin, db.Model):
+
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
+    confirmed = db.Column(db.Boolean, default=False)
 
     @property
     def password(self):
@@ -33,8 +49,41 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def generate_confirmation_token(self, expiration=3600, **kwargs):
+        token_json = {'confirm': self.id}
+        token_json.update(kwargs)
+        s = Serializer(app.config['SECRET_KEY'], expiration)
+        app.logger.debug('Original token_json is {}'.format(token_json))
+        app.logger.debug('current env is {}.'.format(app.config['ENV']))
+        token = s.dumps(token_json)
+        return token
+
+    def confirm(self, token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except Exception:
+            return False
+
+        if data.get('confirm') != self.id:
+            return False
+
+        self.confirmed = True
+        db.session.add(self)
+        return True
+
     def __repr__(self):
         return '<User %r>' % self.username
+
+    @staticmethod
+    def get_value_from_token(token, key):
+        s = Serializer(app.config['SECRET_KEY'])
+        data = s.loads(token)
+        return data.get(key)
+
+    @staticmethod
+    def get_values_from_token(token, *args):
+        return dict((k, v) for k, v in zip(args, [User.get_value_from_token(token, key) for key in args]))
 
 
 @login_manager.user_loader

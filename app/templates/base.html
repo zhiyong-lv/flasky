@@ -27,16 +27,18 @@
             <ul class="nav navbar-nav">
                 <li><a href="/">Home</a></li>
             </ul>
+
+
+            <ul class="nav navbar-nav navbar-right">
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
+                <li><a href="{{ url_for('auth.update_password') }}">Change Password</a></li>
+                <li><a href="{{ url_for('auth.reset_email') }}">Change Email</a></li>
+                {% else %}
+                <li><a href="{{ url_for('auth.login') }}">Sign in</a></li>
+                {% endif %}
+            </ul>
         </div>
-
-
-        <ul class="nav navbar-nav navbar-right">
-            {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
-            {% else %}
-            <li><a href="{{ url_for('auth.login') }}">Sign in</a></li>
-            {% endif %}
-        </ul>
     </div>
 </div>
 {% endblock %}

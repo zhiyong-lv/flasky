@@ -1,4 +1,5 @@
 import os
+import logging
 
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -13,15 +14,27 @@ class Config:
         'FLASKY_MAIL_SENDER') is not None) else os.environ.get('MAIL_USERNAME')
     FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN') if (os.environ.get(
         'FLASKY_ADMIN') is not None) else os.environ.get('MAIL_USERNAME')
+    LOG_PATH = os.path.join(BASE_DIR, 'logs')
+    LOG_PATH_INFO = os.path.join(LOG_PATH, 'info.log')
+    LOG_FILE_MAX_BYTES = 100 * 1024 * 1024
+    LOG_FILE_BACKUP_COUNT = 10
 
-    @staticmethod
-    def init_app(app):
+    @classmethod
+    def init_app(cls, app):
         app.config['SECRET_KEY'] = Config.SECRET_KEY
         app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = Config.SQLALCHEMY_COMMIT_ON_TEARDOWN
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = Config.SQLALCHEMY_TRACK_MODIFICATIONS
         app.config['FLASKY_MAIL_SUBJECT_PREFIX'] = Config.FLASKY_MAIL_SUBJECT_PREFIX
         app.config['FLASKY_MAIL_SENDER'] = Config.FLASKY_MAIL_SENDER
         app.config['FLASKY_ADMIN'] = Config.FLASKY_ADMIN
+        app.config['ENV'] = 'default'
+
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                            datefmt='%a, %d %b %Y %H:%M:%S',
+                            filename=cls.LOG_PATH_INFO,
+                            filemode='w')
+        app.logger = logging.getLogger()
 
 
 class DevelopmentConfig(Config):
@@ -35,8 +48,8 @@ class DevelopmentConfig(Config):
         'sqlite:///' + os.path.join(BASE_DIR, 'data-dev.sqlite')
     ENV = 'DEV'
 
-    @staticmethod
-    def init_app(app):
+    @classmethod
+    def init_app(cls, app):
         Config.init_app(app)
         app.config['SQLALCHEMY_DATABASE_URI'] = DevelopmentConfig.SQLALCHEMY_DATABASE_URI
         app.config['MAIL_SERVER'] = DevelopmentConfig.MAIL_SERVER
@@ -44,6 +57,7 @@ class DevelopmentConfig(Config):
         app.config['MAIL_USE_TLS'] = DevelopmentConfig.MAIL_USE_TLS
         app.config['MAIL_USERNAME'] = DevelopmentConfig.MAIL_USERNAME
         app.config['MAIL_PASSWORD'] = DevelopmentConfig.MAIL_PASSWORD
+        app.config['ENV'] = cls.ENV
 
 
 class TestingConfig(Config):
@@ -58,8 +72,8 @@ class TestingConfig(Config):
         'sqlite:///' + os.path.join(BASE_DIR, 'data-test.sqlite')
     ENV = 'TEST'
 
-    @staticmethod
-    def init_app(app):
+    @classmethod
+    def init_app(cls, app):
         Config.init_app(app)
         app.config['SQLALCHEMY_DATABASE_URI'] = TestingConfig.SQLALCHEMY_DATABASE_URI
         app.config['MAIL_SERVER'] = TestingConfig.MAIL_SERVER
@@ -68,6 +82,7 @@ class TestingConfig(Config):
         app.config['MAIL_USERNAME'] = TestingConfig.MAIL_USERNAME
         app.config['MAIL_PASSWORD'] = TestingConfig.MAIL_PASSWORD
         app.config['TESTING'] = TestingConfig.TESTING
+        app.config['ENV'] = cls.ENV
 
 
 class ProductionConfig(Config):
