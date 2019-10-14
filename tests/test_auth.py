@@ -39,4 +39,4 @@ class AuthTestCase(unittest.TestCase):
             assert(token_json == original_dict)
             assert(user.id == 100)
             pass
-        ConfirmSession.reloadSession(confirm_session._get_token(), do_task)
+        ConfirmSession.reloadSession(confirm_session._get_token())

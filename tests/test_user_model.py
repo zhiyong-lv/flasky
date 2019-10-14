@@ -1,5 +1,5 @@
 import unittest
-from app.models import User
+from app.models import User, Role, Permission, AnonymousUser
 from app import db, create_app
 from config import config
 from flask import current_app
@@ -16,6 +16,16 @@ class UserModelTestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
         self.app_context.pop()
+
+    def test_roles_and_permissions(self):
+        Role.insert_roles()
+        u = User(email='john@example.com', password='cat')
+        self.assertTrue(u.can(Permission.WRITE_ARTICLES))
+        self.assertFalse(u.can(Permission.MODERATE_COMMENTS))
+
+    def test_anonymous_user(self):
+        u = AnonymousUser()
+        u.can(Permission.FOLLOW)
 
     def test_generate_confirmation_tokens(self):
         user = User(id=100)
