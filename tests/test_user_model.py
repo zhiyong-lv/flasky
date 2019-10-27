@@ -17,6 +17,20 @@ class UserModelTestCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
+    def testGravatar(self):
+        user = User(email='john@example.com')
+        current_app.logger.info('user\'s gravatar is {}'.format(user.gravatar()))
+        assert "http://www.gravatar.com/avatar/d4c74594d841139328695756648b6bd6?s=100&d=identicon&r=g" == user.gravatar()
+
+    def testPing(self):
+        user = User(id=100)
+        last_seen1 = user.last_seen
+        current_app.logger.info('last_seen1 is {}'.format(last_seen1))
+        assert last_seen1 is None
+        user.ping()
+        current_app.logger.info('last_seen now is {}'.format(user.last_seen))
+        assert last_seen1 != user.last_seen
+
     def test_roles_and_permissions(self):
         Role.insert_roles()
         u = User(email='john@example.com', password='cat')

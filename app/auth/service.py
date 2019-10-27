@@ -1,6 +1,7 @@
 from flask import flash, current_app
 from .. import db
 from ..models import TOKEN_KEY_NEW_EMAIL
+import hashlib
 
 
 CALL_BACK_URL = 'auth.confirm_handler'
@@ -14,6 +15,7 @@ def change_email(token_json, user):
     new_email = token_json.get(TOKEN_KEY_NEW_EMAIL)
     if new_email is not None:
         user.email = new_email
+        user.avatar_hash = hashlib.md5(user.email.encode('utf-8')).hexdigest()
         db.session.commit()
         flash('Your email have been changed!')
     else:
