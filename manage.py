@@ -4,11 +4,11 @@ from flask import Flask
 from flask_migrate import MigrateCommand
 from flask_script import Manager, Shell
 from app import create_app, db
-from app.models import Role, User
+from app.models import Role, User, Post
 
 
 def make_shell_context():
-    return dict(app=app, db=db, User=User, Role=Role)
+    return dict(app=app, db=db, User=User, Role=Role, Post=Post)
 
 
 if __name__ == '__main__':

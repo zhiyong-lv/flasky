@@ -18,6 +18,7 @@ class Config:
     LOG_PATH_INFO = os.path.join(LOG_PATH, 'info.log')
     LOG_FILE_MAX_BYTES = 100 * 1024 * 1024
     LOG_FILE_BACKUP_COUNT = 10
+    FLASKY_POSTS_PER_PAGE = 20
 
     @classmethod
     def init_app(cls, app):
@@ -28,6 +29,7 @@ class Config:
         app.config['FLASKY_MAIL_SENDER'] = Config.FLASKY_MAIL_SENDER
         app.config['FLASKY_ADMIN'] = Config.FLASKY_ADMIN
         app.config['ENV'] = 'default'
+        app.config['FLASKY_POSTS_PER_PAGE'] = Config.FLASKY_POSTS_PER_PAGE
 
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',

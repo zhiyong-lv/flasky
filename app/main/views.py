@@ -1,12 +1,13 @@
 from datetime import datetime
-from flask import current_app, render_template, session, redirect, url_for, abort, flash
+from flask import render_template, redirect, url_for, abort, flash
+from flask import current_app, request
 from flask_login import login_required, current_user
 from ..decorators import admin_required, permission_required
 from . import main
-from .forms import NameForm, EditProfileForm, EditProfileAdminForm
+from .forms import PostForm, EditProfileForm, EditProfileAdminForm
 from .. import db
-from ..models import User, Permission, Role
-from ..email import send_email
+from ..models import User, Permission, Role, Post
+# from ..email import send_email
 
 
 @main.route('/edit-profile/<int:id>', methods=['GET', 'POST'])
@@ -59,7 +60,8 @@ def user(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-    return render_template('user.html', user=user)
+    posts = user.posts.order_by(Post.timestamp.desc()).all()
+    return render_template('user.html', user=user, posts=posts)
 
 
 @main.route('/admin')
@@ -79,25 +81,36 @@ def for_moderators_only():
 @main.route('/', endpoint='index', methods=['GET', 'POST'])
 @login_required
 def index():
-    form = NameForm()
-    login_name = session.get('name') if session.get('name') is not None else 'Stranger'
-    session['name'] = login_name if form.name.data is None else form.name.data
-    # first time, will return false, because client will send a GET request
-    # instead of a POST request
-    if form.validate_on_submit():
-        existed_user = User.query.filter_by(username=form.name.data).first()
-        if existed_user is None:
-            user = User(username=form.name.data)
-            db.session.add(user)
-            session['known'] = False
-            app = current_app._get_current_object()
-            if app.config['FLASKY_ADMIN']:
-                send_email(app.config['FLASKY_ADMIN'], 'New User',
-                           'mail/new_user', user=form.name.data)
-        else:
-            session['known'] = True
-        session['name'] = form.name.data
-        form.name.data = None
-        return redirect(url_for('main.index'))
-    return render_template('index.html', current_time=datetime.utcnow(), form=form,
-                           known=session.get('known', False), name=session['name'])
+    form = PostForm()
+    if current_user.can(Permission.WRITE_ARTICLES) and form.validate_on_submit():
+        post = Post(body=form.body.data, author=current_user._get_current_object())
+        db.session.add(post)
+        return redirect(url_for('.index'))
+    # posts = Post.query.order_by(Post.timestamp.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+        page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'], error_out=False)
+    posts = pagination.items
+    return render_template('index.html', form=form, posts=posts, pagination=pagination, current_time=datetime.utcnow())
+    # form = NameForm()
+    # login_name = session.get('name') if session.get('name') is not None else 'Stranger'
+    # session['name'] = login_name if form.name.data is None else form.name.data
+    # # first time, will return false, because client will send a GET request
+    # # instead of a POST request
+    # if form.validate_on_submit():
+    #     existed_user = User.query.filter_by(username=form.name.data).first()
+    #     if existed_user is None:
+    #         user = User(username=form.name.data)
+    #         db.session.add(user)
+    #         session['known'] = False
+    #         app = current_app._get_current_object()
+    #         if app.config['FLASKY_ADMIN']:
+    #             send_email(app.config['FLASKY_ADMIN'], 'New User',
+    #                        'mail/new_user', user=form.name.data)
+    #     else:
+    #         session['known'] = True
+    #     session['name'] = form.name.data
+    #     form.name.data = None
+    #     return redirect(url_for('main.index'))
+    # return render_template('index.html', current_time=datetime.utcnow(), form=form,
+    #                        known=session.get('known', False), name=session['name'])

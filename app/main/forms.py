@@ -2,6 +2,12 @@ from wtforms import StringField, SubmitField, TextAreaField, BooleanField, Selec
 from wtforms.validators import Required, Length, Email, Regexp
 from flask_wtf import FlaskForm
 from ..models import User, Role
+from flask_pagedown.fields import PageDownField
+
+
+class PostForm(FlaskForm):
+    body = PageDownField("What's on your mind?", validators=[Required()])
+    submit = SubmitField('Submit')
 
 
 class NameForm(FlaskForm):
