@@ -1,10 +1,12 @@
 import os
-from config import config
+
 from flask import Flask
 from flask_migrate import MigrateCommand
 from flask_script import Manager, Shell
+
 from app import create_app, db
 from app.models import Role, User, Post
+from config import config
 
 
 def make_shell_context():
@@ -17,6 +19,7 @@ if __name__ == '__main__':
     manager = Manager(app)
     manager.add_command("shell", Shell(make_context=make_shell_context))
     manager.add_command('db', MigrateCommand)
+
 
     @manager.command
     def test():
@@ -33,5 +36,6 @@ if __name__ == '__main__':
         cov.save()
 
         cov.html_report()
+
 
     manager.run()

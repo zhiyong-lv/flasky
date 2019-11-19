@@ -48,3 +48,6 @@ logs
 
 # Virtual environment
 venv
+
+# pycharm ide
+.idea

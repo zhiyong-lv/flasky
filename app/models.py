@@ -1,14 +1,15 @@
-from . import db
-from . import login_manager
+import hashlib
+from datetime import datetime
+
+import bleach
 from flask import request, current_app as app
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from datetime import datetime
 from markdown import markdown
-import bleach
-import hashlib
+from werkzeug.security import generate_password_hash, check_password_hash
 
+from . import db
+from . import login_manager
 
 TOKEN_KEY_USER_NAME = 'username'
 TOKEN_KEY_CURRENT_EMAIL = 'cur_email'
@@ -20,6 +21,13 @@ TOKEN_KEYS = [
     TOKEN_KEY_CALL_BACK,
     TOKEN_KEY_NEW_EMAIL
 ]
+
+
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Post(db.Model):
@@ -96,7 +104,6 @@ class Role(db.Model):
 
 
 class User(UserMixin, db.Model):
-
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
@@ -111,6 +118,16 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    followed = db.relationship('Follow',
+                               foreign_keys=[Follow.follower_id],
+                               backref=db.backref('follower', lazy='joined'),
+                               lazy='dynamic',
+                               cascade='all, delete-orphan')
+    followers = db.relationship('Follow',
+                                foreign_keys=[Follow.followed_id],
+                                backref=db.backref('followed', lazy='joined'),
+                                lazy='dynamic',
+                                cascade='all, delete-orphan')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -121,6 +138,22 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(permissions=0xff).first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
+
+    def follow(self, user):
+        if not self.is_following(user):
+            f = Follow(follower=self, followed=user)
+            db.session.add(f)
+
+    def unfollow(self, user):
+        f = self.followed.filter_by(followed_id=user.id).first()
+        if f:
+            db.session.delete(f)
+
+    def is_following(self, user):
+        return self.followed.filter_by(followed_id=user.id).first() is not None
+
+    def is_followed(self, user):
+        return self.followers.filter_by(follower_id=user.id).first() is not None
 
     def gravatar(self, size=100, default='identicon', rating='g'):
         if request.is_secure:
