@@ -203,5 +203,5 @@ def index():
     pagination = query.order_by(Post.timestamp.desc()).paginate(
         page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'], error_out=False)
     posts = pagination.items
-    return render_template('index.html', form=form, posts=posts, pagination=pagination,
-                           current_time=datetime.utcnow())
+    return render_template('index.html', show_followed=show_followed, form=form, posts=posts,
+                           pagination=pagination, current_time=datetime.utcnow())
