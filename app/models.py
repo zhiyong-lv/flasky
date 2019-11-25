@@ -138,6 +138,7 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(permissions=0xff).first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
+        self.follow(self)
 
     def follow(self, user):
         if not self.is_following(user):
@@ -174,6 +175,11 @@ class User(UserMixin, db.Model):
 
     def is_administrator(self):
         return self.can(Permission.ADMINISTER)
+
+    @property
+    def followed_posts(self):
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id)\
+            .filter(Follow.follower_id == self.id)
 
     @property
     def password(self):
@@ -221,6 +227,14 @@ class User(UserMixin, db.Model):
     @staticmethod
     def get_values_from_token(token, *args):
         return dict((k, v) for k, v in zip(args, [User.get_value_from_token(token, key) for key in args]))
+
+    @staticmethod
+    def add_self_follows():
+        for user in User.query.all():
+            if not user.is_following(user):
+                user.follow(user)
+                db.session.add(user)
+                db.session.commit()
 
     @staticmethod
     def generate_fake(count=100):

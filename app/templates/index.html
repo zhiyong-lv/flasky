@@ -24,6 +24,10 @@
         {% endblock %}
         {% endif %}
     </div>
+    <ul>
+        <li><a href='/all'>all</a></li>
+        <li><a href='/followed'>Followers</a></li>
+    </ul>
     {% include '_posts.html' %}
     <div class="pagination">
         {{ macros.pagination_widget(pagination, '.index') }}
