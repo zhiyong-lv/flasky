@@ -20,6 +20,7 @@ class Config:
     LOG_FILE_BACKUP_COUNT = 10
     FLASKY_POSTS_PER_PAGE = 20
     FLASKY_FOLLOWERS_PER_PAGE = 20
+    FLASKY_COMMENTS_PER_PAGE = 20
 
     @classmethod
     def init_app(cls, app):
@@ -32,6 +33,7 @@ class Config:
         app.config['ENV'] = 'default'
         app.config['FLASKY_POSTS_PER_PAGE'] = Config.FLASKY_POSTS_PER_PAGE
         app.config['FLASKY_FOLLOWERS_PER_PAGE'] = Config.FLASKY_FOLLOWERS_PER_PAGE
+        app.config['FLASKY_COMMENTS_PER_PAGE'] = Config.FLASKY_COMMENTS_PER_PAGE
 
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
